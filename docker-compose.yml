@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+  rethinkdb:
+    image: rethinkdb:2.4-buster-slim
+    container_name: rethinkdb
+    ports:
+      - 8080:8080
+      - 28015:28015
+      - 29015:29015
+    volumes:
+      - rethinkdb-data:/data
+    # healthcheck:
+    #   test: ["CMD", "nc", "-vz", "localhost", "28015"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 5
+    command: >
+      rethinkdb
+        --bind all
+        --server-name rethinkdb-local
+        --initial-password ${DB_ADMIN_PASSWORD}
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: heidiks/rabbitmq-delayed-message-exchange:3.9.7-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "--quiet", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  rethinkdb-data:
+  rabbitmq-data:
